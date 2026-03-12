@@ -17,11 +17,11 @@ This project answers that question by building an end-to-end machine learning pi
 
 Export growth is framed as a **binary classification problem**: predict whether a country's exports in year *t+1* will exceed year *t*. Eleven machine learning classifiers are benchmarked under rigorous temporal validation, and the results are analyzed both statistically and through an economic policy lens.
 
-This work was submitted as a term paper for the Applied Data Science & Analytics course at **SRH Wilhelm Löhe Hochschule, Erlangen, Germany**.
+This work was submitted as a term paper for the Machine Learning course at **SRH University**.
 
 ---
 
-## 🎯 Key Results
+##  Key Results
 
 | Model | Accuracy | F1-Score | ROC-AUC |
 |---|---|---|---|
