@@ -1,8 +1,3 @@
-# Generated from: Trade_Export_Prediction (1).ipynb
-# Converted at: 2026-03-12T19:34:14.761Z
-# Next step (optional): refactor into modules & generate tests with RunCell
-# Quick start: pip install runcell
-
 # # World Trade Export Growth Prediction
 # ### End-to-End Machine Learning Pipeline — 34 Years (1988–2021)
 # **Author:** Shiva Goud Koppula | Data Science (Digital Health), SRH University  
@@ -12,13 +7,7 @@
 # ---
 # > **Business Impact:** Enables trade finance institutions, central banks, and export credit agencies to pre-approve credit lines, flag declining markets, and inform WTO policy with ML-driven country risk scores.
 # 
-
-
-!pip install lightgbm
-
 # ## 1. Importing Library 
-
-
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -58,7 +47,7 @@ print(" All libraries loaded successfully")
 
 
 # Loading  34-year longitudinal world trade dataset
-df_raw = pd.read_csv("C:\\Users\\Shiva Goud\\Desktop\\Projects 2026\\India Trade Analytics 1988-2021\\Datasets\\34_years_world_export_import_dataset.csv")
+df_raw = pd.read_csv("Data/34_years_world_export_import_dataset.csv")
 df = df_raw.copy()
 print(f"Shape         : {df.shape}")
 print(f"Year range    : {df['Year'].min()} – {df['Year'].max()}")
@@ -133,7 +122,7 @@ print(f" Finally cleaned shape: {df.shape}")
 
 # Missing value heatmap — raw dataset audit
 fig, ax = plt.subplots(figsize=(16, 4))
-sns.heatmap(df_raw.isnull(), cbar=False, yticklabels=False, ax=ax, cmap="magma")
+sns.heatmap(df_raw.isnull(), cbar=False, yticklabels=False, ax=ax, cmap="Reds")
 ax.set_title("Missing Values — Raw Dataset (yellow = missing)")
 plt.tight_layout()
 plt.show()
@@ -201,7 +190,7 @@ print(df["Target_Export_Growth"].value_counts())
 
 q1 = df.groupby("Country")["Export_US_Thousand"].mean().sort_values(ascending=False).head(10)
 fig, ax = plt.subplots(figsize=(10,5))
-q1.plot(kind="bar", ax=ax, color="steelblue", edgecolor="black")
+q1.plot(kind="bar", ax=ax, color="#B91C1C", edgecolor="black")
 ax.set_title("Top 10 Countries by Average Annual Exports")
 ax.set_ylabel("Avg Export (US$ Thousand)")
 plt.xticks(rotation=30, ha="right")
@@ -215,7 +204,7 @@ print("→ IMPACT: Identifies dominant exporters — critical for FDI targeting 
 
 q2 = df.groupby("Year")["Export_US_Thousand"].sum() / 1e6
 fig, ax = plt.subplots(figsize=(11,4))
-q2.plot(ax=ax, color="teal", linewidth=2.5, marker="o", markersize=4)
+q2.plot(ax=ax, color="#991B1B", linewidth=2.5, marker="o", markersize=4)
 ax.axvline(2008, color="red", linestyle="--", label="GFC 2008")
 ax.axvline(2020, color="orange", linestyle="--", label="COVID 2020")
 ax.set_title("Global Exports (US$ Billions) 1988–2021")
@@ -259,7 +248,7 @@ print("Impact: Persistent surplus economies are stronger export growth candidate
 
 q4 = df.groupby("Decade")["Export_YoY_Growth"].mean().mul(100).round(2)
 fig, ax = plt.subplots(figsize=(7,4))
-q4.plot(kind="bar", ax=ax, color="coral", edgecolor="black")
+q4.plot(kind="bar", ax=ax, color="#DC2626", edgecolor="black")
 ax.set_title("Avg YoY Export Growth (%) by Decade")
 ax.set_ylabel("Avg Growth (%)")
 plt.xticks(rotation=0)
@@ -276,7 +265,7 @@ if tariff_col:
     corr = df[tariff_col[0]].corr(df["Target_Export_Growth"])
     print(f"Pearson correlation (Tariff vs Export Growth Flag): {corr:.4f}")
     fig, ax = plt.subplots(figsize=(7,4))
-    ax.scatter(df[tariff_col[0]].clip(0,50), df["Export_YoY_Growth"].clip(-0.5,1), alpha=0.15, s=10, color="purple")
+    ax.scatter(df[tariff_col[0]].clip(0,50), df["Export_YoY_Growth"].clip(-0.5,1), alpha=0.15, s=10, color="#991B1B")
     ax.set_xlabel("AHS Simple Average Tariff (%)")
     ax.set_ylabel("YoY Export Growth")
     ax.set_title("Tariff Burden vs Export Growth Rate")
@@ -300,7 +289,7 @@ if q6.empty:
     print("No countries have RCA > 1 — nothing to plot.")
 else:
     fig, ax = plt.subplots(figsize=(9,4))
-    q6.plot(kind="bar", ax=ax, color="darkorange", edgecolor="black")
+    q6.plot(kind="bar", ax=ax, color="#F97316", edgecolor="black")
     ax.set_title("Top Countries by Avg RCA (>1 = Competitive Advantage)")
     ax.set_ylabel("Avg RCA")
     plt.xticks(rotation=30, ha="right")
@@ -327,7 +316,7 @@ print("Impact: Surplus countries grow exports more frequently — validates trad
 
 
 fig, ax = plt.subplots(figsize=(9,4))
-df["Export_YoY_Growth"].clip(-1,2).hist(bins=80, ax=ax, color="teal", edgecolor="white", density=True)
+df["Export_YoY_Growth"].clip(-1,2).hist(bins=80, ax=ax, color="#991B1B", edgecolor="white", density=True)
 ax.axvline(0, color="red", linestyle="--", linewidth=1.5, label="Zero growth")
 ax.set_title("Distribution of YoY Export Growth Rates")
 ax.set_xlabel("Growth Rate")
@@ -343,7 +332,7 @@ q9 = df.groupby("Year")["Export_YoY_Growth"].mean().sort_values().head(7).mul(10
 print("Worst contraction years:")
 print(q9.to_string())
 fig, ax = plt.subplots(figsize=(8,4))
-q9.plot(kind="bar", ax=ax, color="crimson", edgecolor="black")
+q9.plot(kind="bar", ax=ax, color="#7F1D1D", edgecolor="black")
 ax.set_title("Worst 7 Years — Avg Export Contraction (%)")
 ax.set_ylabel("Avg Growth (%)")
 plt.xticks(rotation=0)
@@ -369,7 +358,7 @@ print("ImpactT: ~60/40 imbalance — SMOTE applied to prevent model always predi
 
 key_feats = ["Log_Export","Log_Import","Trade_Balance_Ratio","Export_YoY_Growth","Export_Import_Ratio","Surplus_Flag","Target_Export_Growth"]
 fig, ax = plt.subplots(figsize=(9,7))
-sns.heatmap(df[key_feats].corr(), annot=True, fmt=".2f", cmap="coolwarm", ax=ax, linewidths=0.5)
+sns.heatmap(df[key_feats].corr(), annot=True, fmt=".2f", cmap="Reds", ax=ax, linewidths=0.5)
 ax.set_title("Feature Correlation Matrix")
 plt.tight_layout()
 plt.show()
@@ -416,7 +405,7 @@ corr_wg = df["World_Growth"].corr(df["Export_YoY_Growth"])
 print(f"Correlation (World Growth % vs Country Export YoY Growth): {corr_wg:.4f}")
 fig, ax = plt.subplots(figsize=(7,5))
 ax.scatter(df["World_Growth"].clip(-5,10), df["Export_YoY_Growth"].clip(-0.5,1),
-           alpha=0.15, s=8, color="navy")
+           alpha=0.15, s=8, color="#7F1D1D")
 ax.set_xlabel("World Growth (%)")
 ax.set_ylabel("Country Export YoY Growth")
 ax.set_title("World Economic Growth vs Country Export Growth")
@@ -444,7 +433,7 @@ mfn_col = [c for c in df.columns if "MFN_Simple_Average" in c]
 if mfn_col:
     q15 = df.groupby("Year")[mfn_col[0]].mean()
     fig, ax = plt.subplots(figsize=(10,4))
-    q15.plot(ax=ax, color="darkorange", linewidth=2)
+    q15.plot(ax=ax, color="#F97316", linewidth=2)
     ax.set_title("Avg MFN Tariff Rate (%) — WTO Trade Liberalisation Trend")
     ax.set_ylabel("Avg MFN Tariff (%)")
     plt.tight_layout()
@@ -457,7 +446,7 @@ if mfn_col:
 
 q16 = df.groupby("Country")["Export_YoY_Growth"].std().sort_values(ascending=False).head(10)
 fig, ax = plt.subplots(figsize=(9,4))
-q16.plot(kind="bar", ax=ax, color="orchid", edgecolor="black")
+q16.plot(kind="bar", ax=ax, color="#EF4444", edgecolor="black")
 ax.set_title("Most Volatile Exporters (Std Dev of YoY Growth)")
 ax.set_ylabel("Std Dev of Growth Rate")
 plt.xticks(rotation=30, ha="right")
@@ -486,7 +475,7 @@ corr_lag1 = df["Export_Lag1"].corr(df["Export_US_Thousand"])
 fig, ax = plt.subplots(figsize=(7,5))
 sample = df.sample(2000, random_state=42)
 ax.scatter(np.log1p(sample["Export_Lag1"]), np.log1p(sample["Export_US_Thousand"]),
-           alpha=0.3, s=8, color="steelblue")
+           alpha=0.3, s=8, color="#B91C1C")
 ax.set_xlabel("Log(Export Year t-1)")
 ax.set_ylabel("Log(Export Year t)")
 ax.set_title(f"Lag-1 Autocorrelation = {corr_lag1:.4f}")
@@ -568,7 +557,7 @@ if df_col:
 recoveries = df[(df["Prev_Growth"] < 0) & (df["Export_YoY_Growth"] > 0)]
 q21 = recoveries.groupby("Country")["Export_YoY_Growth"].mean().sort_values(ascending=False).head(10).mul(100).round(1)
 fig, ax = plt.subplots(figsize=(9,4))
-q21.plot(kind="bar", ax=ax, color="darkgreen", edgecolor="black")
+q21.plot(kind="bar", ax=ax, color="#B91C1C", edgecolor="black")
 ax.set_title("Strongest Export Recoveries Post-Contraction Year")
 ax.set_ylabel("Avg Recovery Growth (%)")
 plt.xticks(rotation=30, ha="right")
@@ -583,7 +572,7 @@ if "World_Growth" in df.columns:
     df["World_Growth_Q"] = pd.qcut(df["World_Growth"].rank(method="first"), q=4, labels=["Low","Mid-Low","Mid-High","High"])
     q23 = df.groupby("World_Growth_Q")["Target_Export_Growth"].mean().mul(100).round(1)
     fig, ax = plt.subplots(figsize=(7,4))
-    q23.plot(kind="bar", ax=ax, color="royalblue", edgecolor="black")
+    q23.plot(kind="bar", ax=ax, color="#B91C1C", edgecolor="black")
     ax.set_title("Export Growth Probability by World Growth Quartile")
     ax.set_ylabel("Growth Probability (%)")
     plt.xticks(rotation=15)
@@ -614,8 +603,8 @@ print("Impact: Green cluster (growth) concentrated in high-balance zone — conf
 
 sample = df[df["Country"] == df["Country"].value_counts().index[0]]
 fig, ax = plt.subplots(figsize=(10,4))
-ax.plot(sample["Year"], sample["Export_US_Thousand"], label="Actual Export", color="steelblue")
-ax.plot(sample["Year"], sample["Export_Rolling3"], label="3Y Rolling Avg", color="darkorange", linestyle="--")
+ax.plot(sample["Year"], sample["Export_US_Thousand"], label="Actual Export", color="#B91C1C")
+ax.plot(sample["Year"], sample["Export_Rolling3"], label="3Y Rolling Avg", color="#F97316", linestyle="--")
 ax.set_title(f"Export vs 3-Year Rolling Average — {sample['Country'].iloc[0]}")
 ax.set_xlabel("Year")
 ax.set_ylabel("Export (USD K)")
@@ -708,7 +697,7 @@ results_df
 # Visual comparison of all models
 fig, axes = plt.subplots(1, 3, figsize=(16, 6))
 for ax, metric in zip(axes, ["Accuracy","F1_Score","ROC_AUC"]):
-    results_df[metric].sort_values().plot(kind="barh", ax=ax, color="steelblue", edgecolor="black")
+    results_df[metric].sort_values().plot(kind="barh", ax=ax, color="#B91C1C", edgecolor="black")
     ax.set_title(metric, fontsize=13)
     ax.set_xlim(0.4, 1.0)
     ax.axvline(0.75, color="red", linestyle="--", linewidth=0.8, label="0.75 baseline")
@@ -737,10 +726,10 @@ print(classification_report(y_test, y_pred_best, target_names=["No Growth","Grow
 fig, axes = plt.subplots(1, 2, figsize=(13, 5))
 
 cm = confusion_matrix(y_test, y_pred_best)
-ConfusionMatrixDisplay(cm, display_labels=["No Growth","Growth"]).plot(ax=axes[0], colorbar=False, cmap="Blues")
+ConfusionMatrixDisplay(cm, display_labels=["No Growth","Growth"]).plot(ax=axes[0], colorbar=False, cmap="Reds")
 axes[0].set_title(f"Confusion Matrix — {best_name}")
 
-RocCurveDisplay.from_predictions(y_test, y_proba_best, ax=axes[1], name=best_name, color="darkorange")
+RocCurveDisplay.from_predictions(y_test, y_proba_best, ax=axes[1], name=best_name, color="#F97316")
 axes[1].set_title(f"ROC Curve — {best_name}")
 plt.tight_layout()
 plt.show()
@@ -750,7 +739,7 @@ plt.show()
 if hasattr(best_model, "feature_importances_"):
     imp_s = pd.Series(best_model.feature_importances_, index=FEATURE_COLS).sort_values(ascending=False)
     fig, ax = plt.subplots(figsize=(10,6))
-    imp_s.head(15).plot(kind="bar", ax=ax, color="steelblue", edgecolor="black")
+    imp_s.head(15).plot(kind="bar", ax=ax, color="#B91C1C", edgecolor="black")
     ax.set_title(f"Top 15 Feature Importances — {best_name}")
     ax.set_ylabel("Importance Score")
     plt.xticks(rotation=45, ha="right")
@@ -832,3 +821,265 @@ print(f"    F1-Score = {results_df.loc[winner,'F1_Score']}")
 # - RCA — structural competitiveness validated
 # - World growth rate — macro climate overrides firm-level factors
 #
+
+# =============================================================================
+# ## 11. Model Persistence — Save All Artefacts
+# > **Business Impact:** Saved models can be loaded instantly in production
+# > without retraining — enabling real-time country risk scoring for trade
+# > finance teams, central banks, and WTO policy platforms.
+# =============================================================================
+
+import joblib
+import json
+from datetime import datetime
+
+# ── Output directory ─────────────────────────────────────────────────────────
+SAVE_DIR = "saved_models"
+os.makedirs(SAVE_DIR, exist_ok=True)
+
+# ── 11.1  Save the BEST baseline model ───────────────────────────────────────
+best_model_path = os.path.join(SAVE_DIR, f"best_model_{best_name.replace(' ', '_')}.pkl")
+joblib.dump(best_model, best_model_path)
+print(f"[SAVED] Best model      → {best_model_path}")
+
+# ── 11.2  Save the TUNED model (winner of leaderboard) ───────────────────────
+tuned_model_path = os.path.join(SAVE_DIR, f"tuned_model_{best_name.replace(' ', '_')}.pkl")
+joblib.dump(rs.best_estimator_, tuned_model_path)
+print(f"[SAVED] Tuned model     → {tuned_model_path}")
+
+# ── 11.3  Save the pre-processing pipeline ───────────────────────────────────
+#   Imputer + Scaler must be saved together so inference uses identical transforms
+imputer_path = os.path.join(SAVE_DIR, "imputer.pkl")
+scaler_path  = os.path.join(SAVE_DIR, "scaler.pkl")
+joblib.dump(imp,    imputer_path)
+joblib.dump(scaler, scaler_path)
+print(f"[SAVED] Imputer         → {imputer_path}")
+print(f"[SAVED] Scaler          → {scaler_path}")
+
+# ── 11.4  Save ALL benchmark models ──────────────────────────────────────────
+all_models_path = os.path.join(SAVE_DIR, "all_models.pkl")
+joblib.dump(MODELS, all_models_path)
+print(f"[SAVED] All 11 models   → {all_models_path}")
+
+# ── 11.5  Save feature column list ───────────────────────────────────────────
+#   Critical: inference must use the exact same feature order
+feature_path = os.path.join(SAVE_DIR, "feature_cols.json")
+with open(feature_path, "w") as f:
+    json.dump(FEATURE_COLS, f, indent=2)
+print(f"[SAVED] Feature columns → {feature_path}")
+
+# ── 11.6  Save leaderboard results to CSV ────────────────────────────────────
+leaderboard_path = os.path.join(SAVE_DIR, "leaderboard.csv")
+results_df.to_csv(leaderboard_path)
+print(f"[SAVED] Leaderboard     → {leaderboard_path}")
+
+# ── 11.7  Save model metadata (human-readable record card) ───────────────────
+metadata = {
+    "project"        : "Trade Export Growth Prediction",
+    "author"         : "Shiva Goud Koppula",
+    "institution"    : "SRH Wilhelm Löhe Hochschule, Erlangen",
+    "saved_at"       : datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    "best_model_name": best_name,
+    "best_model_auc" : float(results_df.loc[best_name, "ROC_AUC"]),
+    "tuned_model_auc": float(tuned_auc),
+    "tuned_model_acc": float(tuned_acc),
+    "tuned_model_f1" : float(tuned_f1),
+    "tuned_params"   : rs.best_params_,
+    "n_features"     : len(FEATURE_COLS),
+    "feature_cols"   : FEATURE_COLS,
+    "train_period"   : "1988–2015",
+    "test_period"    : "2016–2021",
+    "train_size"     : int(X_train_bal.shape[0]),
+    "test_size"      : int(X_test_sc.shape[0]),
+    "smote_applied"  : True,
+    "dataset"        : "WITS World Bank — 34 years, 265 countries",
+}
+metadata_path = os.path.join(SAVE_DIR, "model_metadata.json")
+with open(metadata_path, "w") as f:
+    json.dump(metadata, f, indent=2)
+print(f"[SAVED] Metadata card   → {metadata_path}")
+
+# ── 11.8  Verify all files were written correctly ────────────────────────────
+print("\n" + "="*60)
+print("  SAVE VERIFICATION")
+print("="*60)
+save_files = [
+    best_model_path, tuned_model_path,
+    imputer_path, scaler_path,
+    all_models_path, feature_path,
+    leaderboard_path, metadata_path,
+]
+all_ok = True
+for fp in save_files:
+    size_kb = os.path.getsize(fp) / 1024
+    status  = "OK" if size_kb > 0 else "EMPTY — CHECK!"
+    print(f"  [{status}]  {os.path.basename(fp):<45}  {size_kb:>8.1f} KB")
+    if size_kb == 0:
+        all_ok = False
+
+print("="*60)
+print(f"  All artefacts saved to: ./{SAVE_DIR}/")
+print(f"  Status: {'ALL GOOD' if all_ok else 'ERRORS FOUND — see above'}")
+print("="*60)
+
+
+# =============================================================================
+# ## 12. Inference Helper — Load & Predict (production usage example)
+# =============================================================================
+
+def load_model_and_predict(input_df: pd.DataFrame, use_tuned: bool = True) -> pd.DataFrame:
+    """
+    Load the saved pipeline and return growth probability for each row.
+
+    Parameters
+    ----------
+    input_df  : pd.DataFrame  — raw country-year rows (same schema as training data)
+    use_tuned : bool          — True = use tuned model, False = best baseline
+
+    Returns
+    -------
+    pd.DataFrame with columns: Country, Year, Growth_Probability, Growth_Prediction
+    """
+    # Load artefacts
+    _imp     = joblib.load(os.path.join(SAVE_DIR, "imputer.pkl"))
+    _scaler  = joblib.load(os.path.join(SAVE_DIR, "scaler.pkl"))
+    _feats   = json.load(open(os.path.join(SAVE_DIR, "feature_cols.json")))
+    _model   = joblib.load(os.path.join(SAVE_DIR,
+                   f"tuned_model_{best_name.replace(' ', '_')}.pkl" if use_tuned
+                   else f"best_model_{best_name.replace(' ', '_')}.pkl"))
+
+    # Validate columns
+    missing = [c for c in _feats if c not in input_df.columns]
+    if missing:
+        raise ValueError(f"Input DataFrame missing columns: {missing}")
+
+    # Pre-process (must mirror training pipeline exactly)
+    X_raw    = input_df[_feats].select_dtypes(include=np.number)
+    X_imp    = _imp.transform(X_raw)
+    X_scaled = _scaler.transform(X_imp)
+
+    # Predict
+    proba = _model.predict_proba(X_scaled)[:, 1]
+    pred  = (proba >= 0.5).astype(int)
+
+    out = pd.DataFrame({
+        "Country"            : input_df["Country"].values if "Country" in input_df.columns else range(len(input_df)),
+        "Year"               : input_df["Year"].values    if "Year"    in input_df.columns else range(len(input_df)),
+        "Growth_Probability" : proba.round(4),
+        "Growth_Prediction"  : pred,
+        "Risk_Label"         : ["HIGH GROWTH" if p >= 0.65 else "MODERATE" if p >= 0.45 else "AT RISK"
+                                for p in proba],
+    })
+    return out.sort_values("Growth_Probability", ascending=False)
+
+
+# ── Quick inference demo on held-out test set ─────────────────────────────────
+print("\n── Inference demo (top 10 predictions on test set) ──")
+test_input = test_df.copy()
+predictions = load_model_and_predict(test_input, use_tuned=True)
+print(predictions.head(10).to_string(index=False))
+
+# Save predictions to CSV
+pred_path = os.path.join(SAVE_DIR, "test_predictions.csv")
+predictions.to_csv(pred_path, index=False)
+print(f"\n[SAVED] Test predictions → {pred_path}")
+
+
+# =============================================================================
+# RED THEME — Console colour helpers (ANSI escape codes)
+# =============================================================================
+
+# ANSI colour codes — red palette
+R  = "\033[91m"   # bright red
+DR = "\033[31m"   # dark red
+CR = "\033[1;31m" # bold crimson
+GD = "\033[33m"   # gold / amber
+WH = "\033[97m"   # white
+DM = "\033[2m"    # dim
+RS = "\033[0m"    # reset
+
+DIV  = f"{DR}{'═'*65}{RS}"
+DIV2 = f"{R}{'─'*65}{RS}"
+
+def red_header(title: str, subtitle: str = "") -> None:
+    print(f"\n{DIV}")
+    print(f"  {CR}{title}{RS}")
+    if subtitle:
+        print(f"  {DM}{subtitle}{RS}")
+    print(DIV)
+
+def red_metric(label: str, value, good: bool = True) -> None:
+    bullet = f"{R}▶{RS}"
+    col    = R if good else GD
+    print(f"  {bullet}  {WH}{label:<30}{RS} {col}{value}{RS}")
+
+def red_row(label: str, value) -> None:
+    print(f"  {DR}│{RS}  {label:<32} {GD}{value}{RS}")
+
+def red_table_header(*cols: str) -> None:
+    row = "  ".join(f"{c:<18}" for c in cols)
+    print(f"\n{DR}  {row}{RS}")
+    print(f"{R}  {'─'*62}{RS}")
+
+def red_table_row(*vals, highlight: bool = False) -> None:
+    row = "  ".join(f"{str(v):<18}" for v in vals)
+    col = CR if highlight else WH
+    print(f"  {col}{row}{RS}")
+
+
+# =============================================================================
+# RED THEMED SUMMARY BLOCKS — insert after training completes
+# =============================================================================
+
+red_header("DATASET OVERVIEW", "World Integrated Trade Solution (WITS) · World Bank")
+red_metric("Countries",          "265")
+red_metric("Year span",          "1988 – 2021  (34 years)")
+red_metric("Raw observations",   "8,096")
+red_metric("Engineered features","18")
+red_metric("Target",             "Binary: next-year export growth (1 = yes)")
+red_metric("Training period",    "1988 – 2015  (5,493 records)")
+red_metric("Test period",        "2016 – 2021  (491 records)")
+red_metric("SMOTE applied",      "Yes — training set only")
+print()
+
+red_header("MODEL LEADERBOARD  (ROC-AUC ↓)", "11 classifiers · temporal validation")
+red_table_header("Model", "Accuracy", "F1-Score", "ROC-AUC")
+for name, row in results_df.iterrows():
+    hi = name == results_df.index[0]
+    red_table_row(name, f"{row.Accuracy:.4f}", f"{row.F1_Score:.4f}", f"{row.ROC_AUC:.4f}", highlight=hi)
+print()
+
+red_header("WINNER DECLARATION")
+print(f"\n  {CR}★  {winner}{RS}")
+red_row("ROC-AUC",  results_df.loc[winner,'ROC_AUC'])
+red_row("Accuracy", results_df.loc[winner,'Accuracy'])
+red_row("F1-Score", results_df.loc[winner,'F1_Score'])
+print()
+
+red_header("HYPERPARAMETER TUNING RESULTS")
+red_row("Best params",    rs.best_params_)
+red_row("Tuned Accuracy", f"{tuned_acc:.4f}")
+red_row("Tuned F1",       f"{tuned_f1:.4f}")
+red_row("Tuned ROC-AUC",  f"{tuned_auc:.4f}")
+red_row("AUC improvement",f"+{tuned_auc - results[best_name]['ROC_AUC']:.4f}")
+print()
+
+red_header("MODEL PERSISTENCE — SAVED ARTEFACTS")
+for fp in save_files:
+    import os
+    size_kb = os.path.getsize(fp) / 1024
+    status = f"{R}✔{RS}" if size_kb > 0 else f"{GD}✘ EMPTY{RS}"
+    print(f"  {status}  {WH}{os.path.basename(fp):<45}{RS} {DR}{size_kb:>7.1f} KB{RS}")
+print(f"\n  {GD}All artefacts → ./{SAVE_DIR}/{RS}\n")
+
+red_header("BUSINESS IMPACT SUMMARY")
+impacts = [
+    ("Trade Finance Banks",    "Pre-approve export credit for high-probability markets"),
+    ("Central Banks",          "Flag at-risk countries for tariff renegotiation"),
+    ("WTO / Policy Makers",    "Data-driven country risk rankings for negotiations"),
+    ("Investment Analysts",    "FDI allocation toward structurally strong exporters"),
+    ("Supply Chain Managers",  "Anticipate supplier-country capacity disruptions"),
+]
+for stakeholder, use in impacts:
+    print(f"  {R}▸{RS}  {CR}{stakeholder:<25}{RS} {DM}{use}{RS}")
+print(f"\n{DIV}\n")
