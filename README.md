@@ -1,4 +1,4 @@
-# 🌍 Predicting Export Growth with Machine Learning
+#  Predicting Export Growth with Machine Learning
 ### A 34-Year Longitudinal Study of Country-Level Trade Dynamics (1988–2021)
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)](https://python.org)
