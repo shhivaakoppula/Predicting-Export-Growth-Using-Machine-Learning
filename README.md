@@ -49,14 +49,14 @@ This work was submitted as a term paper for the Machine Learning course at **SRH
 ## 📂 Project Structure
 
 ```
-trade-export-prediction/
+Export_Growth_Prediction/
 │
 ├── Trade_Export_Prediction.ipynb     # Main notebook — full pipeline
-├── 34_years_world_export_import_dataset.csv  # Raw dataset (WITS / World Bank)
+├── Data - 34_years_world_export_import_dataset.csv  # Raw dataset (WITS / World Bank)
 ├── requirements.txt                   # Python dependencies
 ├── README.md                          # This file
 └── paper/
-    └── Trade_Export_Prediction_Paper_Shiva_Koppula.pdf  # Full research paper
+    └── Machine_learning_Paper_Trade_Export_Prediction_.pdf  # Full research paper
 ```
 
 ---
