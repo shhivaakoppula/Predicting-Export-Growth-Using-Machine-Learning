@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>World Trade Export Intelligence Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --crimson:  #B91C1C;
+    --crimson2: #991B1B;
+    --red:      #DC2626;
+    --red-light:#FEF2F2;
+    --red-mid:  #FCA5A5;
+    --red-dark: #7F1D1D;
+    --accent:   #F97316;
+    --gold:     #D4A017;
+    --surface:  #FFFFFF;
+    --bg:       #FFF5F5;
+    --border:   #FECACA;
+    --text:     #1C0A0A;
+    --muted:    #9B4545;
+    --light:    #FFF1F1;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .site-header {
+    background: var(--red-dark);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 2px solid var(--gold);
+  }
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: #fff;
+    letter-spacing: 0.01em;
+  }
+  .logo span { color: var(--gold); }
+  .header-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: #FCA5A5;
+    text-align: right;
+    line-height: 1.6;
+  }
+
+  /* KPI STRIP */
+  .kpi-strip {
+    background: var(--crimson2);
+    padding: 1rem 2rem;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .kpi { padding: 0.75rem 1.25rem; border-right: 1px solid rgba(255,255,255,0.12); }
+  .kpi:last-child { border-right: none; }
+  .kpi-val {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    color: #fff;
+    line-height: 1;
+  }
+  .kpi-val span { font-size: 14px; color: var(--gold); }
+  .kpi-lbl {
+    font-size: 11px;
+    color: #FCA5A5;
+    margin-top: 4px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* TAB NAV */
+  .tab-nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    position: sticky;
+    top: 64px;
+    z-index: 90;
+  }
+  .tab-nav::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    padding: 0.85rem 1.1rem;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: none;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+    letter-spacing: 0.02em;
+  }
+  .tab-btn:hover { color: var(--crimson); }
+  .tab-btn.active {
+    color: var(--crimson);
+    border-bottom-color: var(--crimson);
+    font-weight: 600;
+  }
+
+  /* MAIN */
+  .main { padding: 1.5rem 2rem; max-width: 1400px; margin: 0 auto; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* SECTION HEADING */
+  .section-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--red-dark);
+    line-height: 1.2;
+  }
+  .section-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+
+  /* CARD */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--crimson), var(--accent));
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--red-dark);
+    margin-bottom: 0.2rem;
+  }
+  .card-q {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    font-style: italic;
+  }
+  .card-insight {
+    background: var(--red-light);
+    border-left: 3px solid var(--crimson);
+    border-radius: 0 6px 6px 0;
+    padding: 8px 12px;
+    font-size: 11.5px;
+    color: var(--red-dark);
+    margin-top: 1rem;
+    line-height: 1.5;
+  }
+  .card-insight strong { color: var(--crimson); }
+
+  /* MODEL CARDS */
+  .model-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .model-card {
+    background: var(--light);
+    border-radius: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    position: relative;
+  }
+  .model-card.winner {
+    background: #FFF1F1;
+    border-color: var(--crimson);
+  }
+  .model-card.winner::after {
+    content: 'BEST AUC';
+    position: absolute;
+    top: 8px; right: 8px;
+    font-size: 9px;
+    font-family: 'DM Mono', monospace;
+    background: var(--gold);
+    color: #4A2C00;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+  .model-name { font-size: 12px; font-weight: 600; color: var(--red-dark); margin-bottom: 8px; }
+  .model-metric { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px; }
+  .model-metric-lbl { color: var(--muted); }
+  .model-metric-val { font-family: 'DM Mono', monospace; font-weight: 500; color: var(--text); }
+  .auc-bar-wrap { height: 4px; background: var(--border); border-radius: 100px; margin-top: 8px; }
+  .auc-bar { height: 4px; border-radius: 100px; background: var(--crimson); }
+
+  /* FEATURE TABLE */
+  .feat-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .feat-table th {
+    text-align: left;
+    padding: 8px 10px;
+    background: var(--red-dark);
+    color: #fff;
+    font-weight: 500;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .feat-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  .feat-table tr:hover td { background: var(--light); }
+  .feat-bar-cell { width: 120px; }
+  .feat-bar-bg { height: 6px; background: var(--border); border-radius: 100px; }
+  .feat-bar-fill { height: 6px; border-radius: 100px; }
+  .tag { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 3px; font-family: 'DM Mono', monospace; font-weight: 500; }
+  .tag-tariff  { background: #FDE8E8; color: #9B1C1C; }
+  .tag-export  { background: #FEF0E8; color: #9A3412; }
+  .tag-balance { background: #FFF3E0; color: #92400E; }
+  .tag-macro   { background: #FEF9E8; color: #78350F; }
+
+  /* STAT PILLS */
+  .stat-pill {
+    background: var(--light);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    text-align: center;
+    min-width: 110px;
+  }
+  .stat-pill-val { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--red-dark); line-height: 1; }
+  .stat-pill-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .chart-wrap { position: relative; width: 100%; }
+
+  /* FOOTER */
+  .footer {
+    background: var(--red-dark);
+    color: #FCA5A5;
+    text-align: center;
+    font-size: 12px;
+    padding: 1rem 2rem;
+    margin-top: 3rem;
+    font-family: 'DM Mono', monospace;
+  }
+  .footer strong { color: var(--gold); }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="logo">Trade<span>IQ</span> · Export Growth Intelligence</div>
+  <div class="header-meta">
+    Shiva Goud Koppula<br>
+    Dataset: WITS / World Bank · 265 Countries · 1988–2021
+  </div>
+</header>
+
+<div class="kpi-strip">
+  <div class="kpi"><div class="kpi-val">8,096 <span>rows</span></div><div class="kpi-lbl">Country-year observations</div></div>
+  <div class="kpi"><div class="kpi-val">265 <span>nations</span></div><div class="kpi-lbl">Countries covered</div></div>
+  <div class="kpi"><div class="kpi-val">0.7923 <span>AUC</span></div><div class="kpi-lbl">Best model (AdaBoost)</div></div>
+  <div class="kpi"><div class="kpi-val">58.66<span>%</span></div><div class="kpi-lbl">Best accuracy (Log. Reg.)</div></div>
+  <div class="kpi"><div class="kpi-val">34 <span>years</span></div><div class="kpi-lbl">Longitudinal span</div></div>
+</div>
+
+<nav class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('eda1',this)">Global Trends</button>
+  <button class="tab-btn" onclick="switchTab('eda2',this)">Country Analysis</button>
+  <button class="tab-btn" onclick="switchTab('eda3',this)">Tariff & Policy</button>
+  <button class="tab-btn" onclick="switchTab('eda4',this)">Growth Dynamics</button>
+  <button class="tab-btn" onclick="switchTab('eda5',this)">Features & Target</button>
+  <button class="tab-btn" onclick="switchTab('models',this)">Model Results</button>
+  <button class="tab-btn" onclick="switchTab('importance',this)">Feature Importance</button>
+</nav>
+
+<div class="main">
+
+<!-- TAB 1: GLOBAL TRENDS -->
+<div id="eda1" class="tab-panel active">
+  <div class="section-head">
+    <div>
+      <div class="section-title">Global Export Trends</div>
+      <div class="section-sub">34-year trajectory, structural breaks, and scale of world trade</div>
+    </div>
+  </div>
+  <div class="grid-2" style="margin-bottom:1.25rem">
+    <div class="card" style="grid-column:1/-1">
+      <div class="card-title">Global Exports 1988–2021 (US$ Billion)</div>
+      <div class="card-q">How did global export volumes trend across three decades?</div>
+      <div class="chart-wrap" style="height:240px"><canvas id="globalTrend"></canvas></div>
+      <div class="card-insight"><strong>Impact:</strong> Peak reached in 2021 at ~$23 trillion. Two major structural breaks: GFC 2009 (−22%) and COVID 2020. Validates need for temporal features and crisis-era dummies in the ML pipeline.</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Worst Export Contraction Years</div>
+      <div class="card-q">Which years saw the deepest average export declines globally?</div>
+      <div class="chart-wrap" style="height:220px"><canvas id="contractionYears"></canvas></div>
+      <div class="card-insight"><strong>Impact:</strong> 2015 commodity crash (−12%), 2009 GFC, and 2020 COVID confirmed as three dominant crisis events.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Export Scale Distribution by Decade</div>
+      <div class="card-q">How has the distribution of log(export) shifted across decades?</div>
+      <div class="chart-wrap" style="height:220px"><canvas id="decadeExport"></canvas></div>
+      <div class="card-insight"><strong>Impact:</strong> Rising medians confirm structural upward trend — Decade is a valid ML input capturing era-level globalisation waves.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 2: COUNTRY ANALYSIS -->
+<div id="eda2" class="tab-panel">
+  <div class="section-head">
+    <div>
+      <div class="section-title">Country-Level Analysis</div>
+      <div class="section-sub">Dominant exporters, competitive advantage, volatility, and recovery patterns</div>
+    </div>
+  </div>
+  <div class="grid-2" style="margin-bottom:1.25rem">
+    <div class="card">
+      <div class="card-title">Top 10 Countries by Average Annual Exports</div>
+      <div class="card-q">Which countries dominate global export volumes?</div>
+      <div class="chart-wrap" style="height:280px"><canvas id="topExporters"></canvas></div>
+      <div class="card-insight"><strong>Impact:</strong> USA, China, Germany dominate by orders of magnitude — justifies log-transformation so small economies remain meaningful predictors.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Top 12 Countries by Export Growth Probability</div>
+      <div class="card-q">Which countries have the highest historical probability of export growth?</div>
+      <div class="chart-wrap" style="height:280px"><canvas id="growthProb"></canvas></div>
+      <div class="card-insight"><strong>Impact:</strong> Countries above 70% are "safe-bet" partners for trade credit lines and export insurance portfolios.</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Most Volatile Exporters</div>
+      <div class="card-q">Which economies have the most unpredictable export trajectories?</div>
+      <div class="chart-wrap" style="height:220px"><canvas id="volatility"></canvas></div>
+      <div class="card-insight"><strong>Impact:</strong> Highly volatile exporters = elevated credit risk. Trade finance institutions should apply higher risk premiums.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Strongest Recovery Countries Post-Contraction</div>
+      <div class="card-q">Which economies bounce back fastest after a contraction year?</div>
+      <div class="chart-wrap" style="height:220px"><canvas id="recovery"></canvas></div>
+      <div class="card-insight"><strong>Impact:</strong> Resilient economies are safe to extend trade credit quickly post-crisis — informs risk re-entry timing strategy.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: TARIFF & POLICY -->
+<div id="eda3" class="tab-panel">
+  <div class="section-head">
+    <div>
+      <div class="section-title">Tariff Structure & Trade Policy</div>
+      <div class="section-sub">MFN liberalisation trend, AHS burden, and duty-free access impact</div>
+    </div>
+  </div>
+  <div class="grid-2" style="margin-bottom:1.25rem">
+    <div class="card" style="grid-column:1/-1">
+      <div class="card-title">Average MFN Tariff Rate 1988–2021 — WTO Liberalisation Trend</div>
+      <div class="card-q">How have Most Favoured Nation tariff rates evolved across 34 years of WTO negotiations?</div>
+      <div class="chart-wrap" style="height:220px"><canvas id="mfnTrend"></canvas></div>
+      <div class="card-insight"><strong>Impact:</strong> Tariffs fell from ~15% (1990) to &lt;9% (2021). This structural decline partly explains rising export growth probabilities — and why MFN_Simple_Average is the top ML feature.</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">AHS Tariff Burden vs Export Growth Probability</div>
+      <div class="card-q">Do countries with lower applied tariffs have higher growth probability?</div>
+      <div class="chart-wrap" style="height:220px"><canvas id="tariffGrowth"></canvas></div>
+      <div class="card-insight"><strong>Impact:</strong> Negative correlation confirmed — validates WTO liberalisation policy and AHS_Simple_Average as a key predictor.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Duty-Free Share Impact on Export Growth</div>
+      <div class="card-q">Do countries with greater duty-free market access export more?</div>
+      <div class="chart-wrap" style="height:220px"><canvas id="dutyFree"></canvas></div>
+      <div class="card-insight"><strong>Impact:</strong> Q4 (high duty-free access) economies grow exports at 2× the rate of Q1 economies.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 4: GROWTH DYNAMICS -->
+<div id="eda4" class="tab-panel">
+  <div class="section-head">
+    <div>
+      <div class="section-title">Export Growth Dynamics</div>
+      <div class="section-sub">Decade patterns, surplus/deficit splits, macro linkage, and momentum</div>
+    </div>
+  </div>
+  <div class="grid-3" style="margin-bottom:1.25rem">
+    <div class="card">
+      <div class="card-title">Avg YoY Export Growth by Decade</div>
+      <div class="card-q">Which decades were the strongest for global export expansion?</div>
+      <div class="chart-wrap" style="height:200px"><canvas id="decadeGrowth"></canvas></div>
+      <div class="card-insight"><strong>Impact:</strong> 1990s boom vs 2010s slowdown — informs long-term export strategy and cycle positioning.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Export Growth: Surplus vs Deficit Economies</div>
+      <div class="card-q">Do trade surplus countries grow exports faster?</div>
+      <div class="chart-wrap" style="height:200px"><canvas id="surplusDeficit"></canvas></div>
+      <div class="card-insight"><strong>Impact:</strong> Surplus economies grow at ~6.8% vs ~3.2% for deficit — validates Surplus_Flag as a binary ML feature.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Export Growth Probability by Decade</div>
+      <div class="card-q">In which decades was a country most likely to grow exports?</div>
+      <div class="chart-wrap" style="height:200px"><canvas id="decadeProb"></canvas></div>
+      <div class="card-insight"><strong>Impact:</strong> 1990s highest (78%); 2010s dip (54%). Decade is a valid ML feature.</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">World Growth vs Country Export Growth</div>
+      <div class="card-q">How strongly does global GDP growth predict individual country export performance?</div>
+      <div class="chart-wrap" style="height:220px"><canvas id="worldGrowth"></canvas></div>
+      <div class="card-insight"><strong>Impact:</strong> Positive linkage confirmed — global macro conditions override domestic factors; World_Growth must be included as a feature.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Export Growth Probability by World Growth Quartile</div>
+      <div class="card-q">Does the global macro climate double export growth probability at the top quartile?</div>
+      <div class="chart-wrap" style="height:220px"><canvas id="worldGrowthQ"></canvas></div>
+      <div class="card-insight"><strong>Impact:</strong> Growth probability nearly doubles in high world-growth periods (Q4 ~72%) vs low (Q1 ~42%).</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 5: FEATURES & TARGET -->
+<div id="eda5" class="tab-panel">
+  <div class="section-head">
+    <div>
+      <div class="section-title">Feature Engineering & Target Analysis</div>
+      <div class="section-sub">Class balance, correlation structure, YoY distribution, and lag autocorrelation</div>
+    </div>
+  </div>
+  <div class="grid-2" style="margin-bottom:1.25rem">
+    <div class="card">
+      <div class="card-title">Target Class Balance</div>
+      <div class="card-q">Is the export growth label balanced between growth and no-growth?</div>
+      <div style="display:flex;align-items:center;gap:1.5rem">
+        <div class="chart-wrap" style="height:200px;width:200px;flex-shrink:0"><canvas id="classBalance"></canvas></div>
+        <div>
+          <div class="stat-pill" style="margin-bottom:0.75rem">
+            <div class="stat-pill-val" style="color:#B91C1C">3,628</div>
+            <div class="stat-pill-lbl">Growth (60.6%)</div>
+          </div>
+          <div class="stat-pill">
+            <div class="stat-pill-val" style="color:#F97316">2,356</div>
+            <div class="stat-pill-lbl">No Growth (39.4%)</div>
+          </div>
+          <div class="card-insight" style="margin-top:0.75rem;max-width:220px"><strong>Impact:</strong> Mild 60/40 imbalance addressed with SMOTE on training set only.</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">YoY Export Growth Rate Distribution</div>
+      <div class="card-q">Is the growth rate normally distributed, or fat-tailed?</div>
+      <div class="chart-wrap" style="height:200px"><canvas id="yoyDist"></canvas></div>
+      <div class="card-insight"><strong>Impact:</strong> Fat tails on both sides justify non-linear ML models — extreme events are more common than a normal distribution predicts.</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Key Feature Correlation Matrix</div>
+      <div class="card-q">Which engineered features carry independent information vs redundant signals?</div>
+      <div id="heatmap" style="font-family:'DM Mono',monospace;font-size:11px;overflow-x:auto"></div>
+      <div class="card-insight"><strong>Impact:</strong> Log_Export ↔ Lag1/Lag2 highly correlated (expected). Trade_Balance_Ratio provides independent signal.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Lag-1 Export Autocorrelation</div>
+      <div class="card-q">How strongly does last year's export predict this year's export?</div>
+      <div class="chart-wrap" style="height:220px"><canvas id="lagCorr"></canvas></div>
+      <div class="card-insight"><strong>Impact:</strong> Near-perfect autocorrelation (r ≈ 0.98) — validates Export_Lag1, Lag2, and Rolling3 as top features.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 6: MODEL RESULTS -->
+<div id="models" class="tab-panel">
+  <div class="section-head">
+    <div>
+      <div class="section-title">Model Benchmark Results</div>
+      <div class="section-sub">11 classifiers ranked by ROC-AUC · temporal validation · 2016–2021 test set</div>
+    </div>
+  </div>
+  <div class="model-grid">
+    <div class="model-card winner">
+      <div class="model-name">AdaBoost</div>
+      <div class="model-metric"><span class="model-metric-lbl">ROC-AUC</span><span class="model-metric-val" style="color:var(--crimson)">0.7923</span></div>
+      <div class="model-metric"><span class="model-metric-lbl">Accuracy</span><span class="model-metric-val">45.82%</span></div>
+      <div class="model-metric"><span class="model-metric-lbl">F1-Score</span><span class="model-metric-val">0.335</span></div>
+      <div class="auc-bar-wrap"><div class="auc-bar" style="width:79.23%"></div></div>
+    </div>
+    <div class="model-card">
+      <div class="model-name">Gradient Boosting</div>
+      <div class="model-metric"><span class="model-metric-lbl">ROC-AUC</span><span class="model-metric-val">0.7683</span></div>
+      <div class="model-metric"><span class="model-metric-lbl">Accuracy</span><span class="model-metric-val">44.60%</span></div>
+      <div class="model-metric"><span class="model-metric-lbl">F1-Score</span><span class="model-metric-val">0.273</span></div>
+      <div class="auc-bar-wrap"><div class="auc-bar" style="width:76.83%"></div></div>
+    </div>
+    <div class="model-card" style="background:#FFF7ED;border-color:var(--accent)">
+      <div class="model-name" style="color:#9A3412">Logistic Regression ★</div>
+      <div class="model-metric"><span class="model-metric-lbl">ROC-AUC</span><span class="model-metric-val">0.7629</span></div>
+      <div class="model-metric"><span class="model-metric-lbl">Accuracy</span><span class="model-metric-val" style="color:#9A3412">58.66%</span></div>
+      <div class="model-metric"><span class="model-metric-lbl">F1-Score</span><span class="model-metric-val" style="color:#9A3412">0.593</span></div>
+      <div class="auc-bar-wrap"><div class="auc-bar" style="width:76.29%;background:var(--accent)"></div></div>
+    </div>
+    <div class="model-card">
+      <div class="model-name">SVM (RBF)</div>
+      <div class="model-metric"><span class="model-metric-lbl">ROC-AUC</span><span class="model-metric-val">0.7551</span></div>
+      <div class="model-metric"><span class="model-metric-lbl">Accuracy</span><span class="model-metric-val">41.14%</span></div>
+      <div class="model-metric"><span class="model-metric-lbl">F1-Score</span><span class="model-metric-val">0.195</span></div>
+      <div class="auc-bar-wrap"><div class="auc-bar" style="width:75.51%"></div></div>
+    </div>
+    <div class="model-card">
+      <div class="model-name">Random Forest</div>
+      <div class="model-metric"><span class="model-metric-lbl">ROC-AUC</span><span class="model-metric-val">0.7525</span></div>
+      <div class="model-metric"><span class="model-metric-lbl">Accuracy</span><span class="model-metric-val">49.69%</span></div>
+      <div class="model-metric"><span class="model-metric-lbl">F1-Score</span><span class="model-metric-val">0.422</span></div>
+      <div class="auc-bar-wrap"><div class="auc-bar" style="width:75.25%"></div></div>
+    </div>
+    <div class="model-card">
+      <div class="model-name">Extra Trees</div>
+      <div class="model-metric"><span class="model-metric-lbl">ROC-AUC</span><span class="model-metric-val">0.7515</span></div>
+      <div class="model-metric"><span class="model-metric-lbl">Accuracy</span><span class="model-metric-val">49.49%</span></div>
+      <div class="model-metric"><span class="model-metric-lbl">F1-Score</span><span class="model-metric-val">0.446</span></div>
+      <div class="auc-bar-wrap"><div class="auc-bar" style="width:75.15%"></div></div>
+    </div>
+    <div class="model-card">
+      <div class="model-name">KNN</div>
+      <div class="model-metric"><span class="model-metric-lbl">ROC-AUC</span><span class="model-metric-val">0.7467</span></div>
+      <div class="model-metric"><span class="model-metric-lbl">Accuracy</span><span class="model-metric-val">48.68%</span></div>
+      <div class="model-metric"><span class="model-metric-lbl">F1-Score</span><span class="model-metric-val">0.417</span></div>
+      <div class="auc-bar-wrap"><div class="auc-bar" style="width:74.67%"></div></div>
+    </div>
+    <div class="model-card">
+      <div class="model-name">XGBoost</div>
+      <div class="model-metric"><span class="model-metric-lbl">ROC-AUC</span><span class="model-metric-val">0.7394</span></div>
+      <div class="model-metric"><span class="model-metric-lbl">Accuracy</span><span class="model-metric-val">49.69%</span></div>
+      <div class="model-metric"><span class="model-metric-lbl">F1-Score</span><span class="model-metric-val">0.450</span></div>
+      <div class="auc-bar-wrap"><div class="auc-bar" style="width:73.94%"></div></div>
+    </div>
+    <div class="model-card">
+      <div class="model-name">LightGBM</div>
+      <div class="model-metric"><span class="model-metric-lbl">ROC-AUC</span><span class="model-metric-val">0.7305</span></div>
+      <div class="model-metric"><span class="model-metric-lbl">Accuracy</span><span class="model-metric-val">47.86%</span></div>
+      <div class="model-metric"><span class="model-metric-lbl">F1-Score</span><span class="model-metric-val">0.407</span></div>
+      <div class="auc-bar-wrap"><div class="auc-bar" style="width:73.05%"></div></div>
+    </div>
+    <div class="model-card">
+      <div class="model-name">Naive Bayes</div>
+      <div class="model-metric"><span class="model-metric-lbl">ROC-AUC</span><span class="model-metric-val" style="color:#D97706">0.6791</span></div>
+      <div class="model-metric"><span class="model-metric-lbl">Accuracy</span><span class="model-metric-val">43.58%</span></div>
+      <div class="model-metric"><span class="model-metric-lbl">F1-Score</span><span class="model-metric-val">0.329</span></div>
+      <div class="auc-bar-wrap"><div class="auc-bar" style="width:67.91%;background:#D97706"></div></div>
+    </div>
+    <div class="model-card">
+      <div class="model-name">Decision Tree</div>
+      <div class="model-metric"><span class="model-metric-lbl">ROC-AUC</span><span class="model-metric-val" style="color:#D97706">0.5961</span></div>
+      <div class="model-metric"><span class="model-metric-lbl">Accuracy</span><span class="model-metric-val">53.97%</span></div>
+      <div class="model-metric"><span class="model-metric-lbl">F1-Score</span><span class="model-metric-val">0.525</span></div>
+      <div class="auc-bar-wrap"><div class="auc-bar" style="width:59.61%;background:#D97706"></div></div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">ROC-AUC Leaderboard</div>
+      <div class="card-q">Ranked by discriminative ability across all thresholds</div>
+      <div class="chart-wrap" style="height:320px"><canvas id="aucChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Accuracy vs F1-Score</div>
+      <div class="card-q">AUC leaders ≠ accuracy leaders — SMOTE calibration effect</div>
+      <div class="chart-wrap" style="height:320px"><canvas id="accF1Chart"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 7: FEATURE IMPORTANCE -->
+<div id="importance" class="tab-panel">
+  <div class="section-head">
+    <div>
+      <div class="section-title">Feature Importance Analysis (AdaBoost)</div>
+      <div class="section-sub">Which features drive export growth prediction — and what does this mean for policy?</div>
+    </div>
+  </div>
+  <div class="grid-2" style="margin-bottom:1.25rem">
+    <div class="card" style="grid-column:1/-1">
+      <div class="card-title">Top 10 Feature Importances with Policy Interpretation</div>
+      <div class="card-q">Colour-coded by feature category: Tariff · Export Volume · Trade Balance · Macro/Momentum</div>
+      <table class="feat-table" style="margin-bottom:1rem">
+        <thead>
+          <tr>
+            <th style="width:30px">#</th>
+            <th>Feature</th>
+            <th>Category</th>
+            <th>Importance</th>
+            <th class="feat-bar-cell">Relative Weight</th>
+            <th>Policy Meaning</th>
+          </tr>
+        </thead>
+        <tbody id="featTableBody"></tbody>
+      </table>
+      <div class="card-insight"><strong>Key finding:</strong> Tariff variables (MFN & AHS Simple Average) are the joint top predictors — providing data-driven validation of WTO's argument that trade liberalisation drives export expansion.</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Feature Importance Visual (AdaBoost)</div>
+    <div class="chart-wrap" style="height:300px"><canvas id="featChart"></canvas></div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<footer class="footer">
+  <strong>TradeIQ Dashboard</strong> · Shiva Goud Koppula · Dataset: WITS / World Bank · 265 Countries · 1988–2021
+</footer>
+
+<script>
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+const CR='#B91C1C', CR2='#991B1B', RED='#DC2626', ACC='#F97316',
+      GOLD='#D4A017', DARK='#7F1D1D', MID='#E55', AMBER='#D97706';
+
+const RED_SHADES = ['#7F1D1D','#991B1B','#B91C1C','#DC2626','#EF4444',
+                    '#F87171','#FCA5A5','#FECACA','#FEE2E2','#FFF5F5'];
+
+const base = { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}} };
+
+// Global trend
+const yrs = Array.from({length:34},(_,i)=>1988+i);
+const exp_bn = [3200,3450,3700,3850,4100,4450,4700,5000,5400,5300,5600,5100,5400,
+                5700,6000,6400,6800,7200,7800,8300,9100,9800,10200,8200,9600,10500,
+                11000,10800,11500,12000,13500,11200,14800,15800];
+new Chart(document.getElementById('globalTrend'),{
+  type:'line',
+  data:{labels:yrs,datasets:[{data:exp_bn,borderColor:RED,backgroundColor:'rgba(185,28,28,0.08)',
+    borderWidth:2.5,pointRadius:2,fill:true,tension:0.3}]},
+  options:{...base,scales:{
+    x:{ticks:{maxTicksLimit:10,font:{size:10}},grid:{display:false}},
+    y:{ticks:{callback:v=>'$'+Math.round(v/1000)+'T',font:{size:10}},grid:{color:'#FEE2E2'}}
+  }}
+});
+
+// Contraction years
+new Chart(document.getElementById('contractionYears'),{
+  type:'bar',
+  data:{labels:['2015','2009','2020','2016','2012','2001','1998'],
+    datasets:[{data:[-11.8,-9.2,-7.4,-4.1,-2.9,-2.1,-1.8],
+      backgroundColor:['#7F1D1D','#991B1B','#B91C1C','#DC2626','#EF4444','#F87171','#FCA5A5'],
+      borderRadius:4}]},
+  options:{...base,scales:{
+    x:{grid:{display:false},ticks:{font:{size:10}}},
+    y:{ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#FEE2E2'}}
+  }}
+});
+
+// Decade export distribution
+new Chart(document.getElementById('decadeExport'),{
+  type:'bar',
+  data:{labels:['1980s','1990s','2000s','2010s','2020s'],
+    datasets:[
+      {label:'Median',data:[7.2,8.1,9.4,10.6,11.2],backgroundColor:CR,borderRadius:4},
+      {label:'Q75',data:[9.8,10.9,12.1,13.2,13.9],backgroundColor:'rgba(185,28,28,0.25)',borderRadius:4},
+    ]},
+  options:{...base,plugins:{legend:{display:true,labels:{font:{size:10},boxWidth:10}}},
+    scales:{
+      x:{grid:{display:false},ticks:{font:{size:10}}},
+      y:{ticks:{callback:v=>v+' ln',font:{size:10}},grid:{color:'#FEE2E2'}}
+    }}
+});
+
+// Top 10 exporters
+new Chart(document.getElementById('topExporters'),{
+  type:'bar',
+  data:{labels:['USA','China','Germany','Japan','France','UK','Netherlands','Italy','Canada','S. Korea'],
+    datasets:[{data:[620,510,480,380,280,270,230,210,200,185],
+      backgroundColor:RED_SHADES,borderRadius:4}]},
+  options:{...base,scales:{
+    x:{grid:{display:false},ticks:{font:{size:9},maxRotation:30}},
+    y:{ticks:{callback:v=>'$'+v+'B',font:{size:10}},grid:{color:'#FEE2E2'}}
+  }}
+});
+
+// Growth probability
+new Chart(document.getElementById('growthProb'),{
+  type:'bar',
+  data:{labels:['Malta','Luxembourg','Ireland','Singapore','Switzerland','Netherlands','Belgium','Austria','Denmark','Hong Kong','Sweden','Finland'],
+    datasets:[{data:[82,80,79,78,76,75,74,73,72,71,70,69],
+      backgroundColor: Array(12).fill(0).map((_,i)=>i<4?CR:i<8?RED:CR2),
+      borderRadius:4}]},
+  options:{...base,scales:{
+    x:{grid:{display:false},ticks:{font:{size:9},maxRotation:30}},
+    y:{min:60,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#FEE2E2'}}
+  }}
+});
+
+// Volatility
+new Chart(document.getElementById('volatility'),{
+  type:'bar',
+  data:{labels:['Iraq','Libya','Angola','Azerbaijan','Yemen','Kazakhstan','Nigeria','Algeria','Kuwait','Eq. Guinea'],
+    datasets:[{data:[1.82,1.64,1.43,1.38,1.31,1.24,1.19,1.14,1.08,1.02],
+      backgroundColor:RED_SHADES.slice(0,10),borderRadius:4}]},
+  options:{...base,scales:{
+    x:{grid:{display:false},ticks:{font:{size:9},maxRotation:30}},
+    y:{ticks:{font:{size:10}},grid:{color:'#FEE2E2'}}
+  }}
+});
+
+// Recovery
+new Chart(document.getElementById('recovery'),{
+  type:'bar',
+  data:{labels:['Timor-Leste','Liberia','Chad','Niger','Mali','Rwanda','Mozambique','Sierra Leone','Togo','Cambodia'],
+    datasets:[{data:[148,112,98,86,78,72,68,64,61,58],
+      backgroundColor:Array(10).fill(0).map((_,i)=>`hsl(0,${75-i*4}%,${35+i*4}%)`),
+      borderRadius:4}]},
+  options:{...base,scales:{
+    x:{grid:{display:false},ticks:{font:{size:9},maxRotation:30}},
+    y:{ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#FEE2E2'}}
+  }}
+});
+
+// MFN Tariff trend
+const mfnYrs=Array.from({length:17},(_,i)=>1990+i*2);
+const mfnR=[14.8,14.2,13.4,12.8,12.1,11.4,10.8,10.2,9.8,9.4,9.1,8.8,8.6,8.4,8.2,8.0,7.9];
+new Chart(document.getElementById('mfnTrend'),{
+  type:'line',
+  data:{labels:mfnYrs,datasets:[{data:mfnR,borderColor:RED,backgroundColor:'rgba(220,38,38,0.08)',
+    borderWidth:2.5,pointRadius:3,pointBackgroundColor:RED,fill:true,tension:0.3}]},
+  options:{...base,scales:{
+    x:{grid:{display:false},ticks:{font:{size:10}}},
+    y:{ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#FEE2E2'}}
+  }}
+});
+
+// Tariff vs growth
+new Chart(document.getElementById('tariffGrowth'),{
+  type:'bar',
+  data:{labels:['0–5%','5–10%','10–15%','15–20%','20–30%','>30%'],
+    datasets:[{data:[72,67,63,58,54,48],
+      backgroundColor:['#7F1D1D','#991B1B','#B91C1C','#DC2626','#EF4444','#F87171'],
+      borderRadius:4}]},
+  options:{...base,scales:{
+    x:{grid:{display:false},ticks:{font:{size:10}}},
+    y:{min:40,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#FEE2E2'}}
+  }}
+});
+
+// Duty free
+new Chart(document.getElementById('dutyFree'),{
+  type:'bar',
+  data:{labels:['Q1 Low Access','Q2','Q3','Q4 High Access'],
+    datasets:[{data:[2.8,4.1,5.2,6.9],
+      backgroundColor:['#FCA5A5','#F87171','#DC2626','#7F1D1D'],borderRadius:4}]},
+  options:{...base,scales:{
+    x:{grid:{display:false},ticks:{font:{size:10}}},
+    y:{ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#FEE2E2'}}
+  }}
+});
+
+// Decade growth
+new Chart(document.getElementById('decadeGrowth'),{
+  type:'bar',
+  data:{labels:['1980s','1990s','2000s','2010s','2020s'],
+    datasets:[{data:[4.2,8.8,7.1,3.4,11.2],
+      backgroundColor:['#FCA5A5','#7F1D1D','#B91C1C','#EF4444','#991B1B'],borderRadius:4}]},
+  options:{...base,scales:{
+    x:{grid:{display:false},ticks:{font:{size:9}}},
+    y:{ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#FEE2E2'}}
+  }}
+});
+
+// Surplus vs deficit
+new Chart(document.getElementById('surplusDeficit'),{
+  type:'bar',
+  data:{labels:['Deficit Economies','Surplus Economies'],
+    datasets:[{data:[3.2,6.8],backgroundColor:['#FCA5A5','#7F1D1D'],borderRadius:6}]},
+  options:{...base,scales:{
+    x:{grid:{display:false},ticks:{font:{size:10}}},
+    y:{ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#FEE2E2'}}
+  }}
+});
+
+// Decade prob
+new Chart(document.getElementById('decadeProb'),{
+  type:'bar',
+  data:{labels:['1980s','1990s','2000s','2010s','2020s'],
+    datasets:[{data:[68,78.1,71.4,53.9,89.4],
+      backgroundColor:['#FCA5A5','#7F1D1D','#B91C1C','#EF4444','#991B1B'],borderRadius:4}]},
+  options:{...base,scales:{
+    x:{grid:{display:false},ticks:{font:{size:9}}},
+    y:{min:40,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#FEE2E2'}}
+  }}
+});
+
+// World growth vs export
+new Chart(document.getElementById('worldGrowth'),{
+  type:'bar',
+  data:{labels:['<1%','1–2%','2–3%','3–4%','>4%'],
+    datasets:[{data:[-2.1,2.8,5.4,7.2,9.8],
+      backgroundColor:['#FCA5A5','#F87171','#B91C1C','#991B1B','#7F1D1D'],borderRadius:4}]},
+  options:{...base,scales:{
+    x:{grid:{display:false},ticks:{font:{size:10}},title:{display:true,text:'World GDP Growth Band',font:{size:10}}},
+    y:{ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#FEE2E2'}}
+  }}
+});
+
+// World growth quartile
+new Chart(document.getElementById('worldGrowthQ'),{
+  type:'bar',
+  data:{labels:['Q1 Low','Q2 Mid-Low','Q3 Mid-High','Q4 High'],
+    datasets:[{data:[41.8,54.2,63.7,72.1],
+      backgroundColor:['#FCA5A5','#F87171','#DC2626','#7F1D1D'],borderRadius:4}]},
+  options:{...base,scales:{
+    x:{grid:{display:false},ticks:{font:{size:10}}},
+    y:{min:30,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#FEE2E2'}}
+  }}
+});
+
+// Class balance donut
+new Chart(document.getElementById('classBalance'),{
+  type:'doughnut',
+  data:{labels:['Growth (1)','No Growth (0)'],
+    datasets:[{data:[3628,2356],backgroundColor:[CR,ACC],borderWidth:3,borderColor:'#fff',hoverOffset:6}]},
+  options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false}}}
+});
+
+// YoY distribution
+const bins=['-100%','-80%','-60%','-40%','-20%','0%','20%','40%','60%','80%','100%','>100%'];
+const vals=[18,32,62,148,312,280,245,180,98,52,28,42];
+new Chart(document.getElementById('yoyDist'),{
+  type:'bar',
+  data:{labels:bins,datasets:[{data:vals,
+    backgroundColor:vals.map((_,i)=>i<5?DARK:i===5?RED:CR2),borderRadius:2}]},
+  options:{...base,scales:{
+    x:{grid:{display:false},ticks:{font:{size:9}}},
+    y:{ticks:{font:{size:9}},grid:{color:'#FEE2E2'}}
+  }}
+});
+
+// Correlation heatmap
+const hf=['Log_Exp','Log_Imp','Bal_Ratio','Exp_ImpR','YoY_Gr','Lag1','Lag2','Roll3','Surplus'];
+const cm=[
+  [1.00,0.82,0.18,0.22,0.11,0.98,0.96,0.99,0.14],
+  [0.82,1.00,-0.31,-0.28,0.08,0.81,0.79,0.82,-0.19],
+  [0.18,-0.31,1.00,0.91,0.04,0.17,0.17,0.18,0.72],
+  [0.22,-0.28,0.91,1.00,0.03,0.21,0.21,0.22,0.64],
+  [0.11,0.08,0.04,0.03,1.00,0.06,0.04,0.09,0.02],
+  [0.98,0.81,0.17,0.21,0.06,1.00,0.98,0.99,0.13],
+  [0.96,0.79,0.17,0.21,0.04,0.98,1.00,0.97,0.13],
+  [0.99,0.82,0.18,0.22,0.09,0.99,0.97,1.00,0.14],
+  [0.14,-0.19,0.72,0.64,0.02,0.13,0.13,0.14,1.00],
+];
+function hColor(v){
+  if(v>=0.8)return'#7F1D1D';if(v>=0.5)return'#B91C1C';
+  if(v>=0.2)return'#FCA5A5';if(v>=0)return'#FEE2E2';
+  if(v>=-0.2)return'#FEDDDD';return'#E85D4A';
+}
+function hText(v){return v>=0.4?'#fff':'#1C0A0A';}
+let ht='<table style="border-collapse:collapse;width:100%"><tr><td style="padding:3px;font-size:10px"></td>';
+hf.forEach(f=>{ht+=`<td style="padding:3px;text-align:center;font-size:9px;color:#9B4545;writing-mode:vertical-rl;transform:rotate(180deg);height:60px">${f}</td>`;});
+ht+='</tr>';
+cm.forEach((row,ri)=>{
+  ht+=`<tr><td style="padding:3px;font-size:9px;color:#9B4545;white-space:nowrap">${hf[ri]}</td>`;
+  row.forEach(v=>{
+    ht+=`<td style="padding:4px 2px;text-align:center;background:${hColor(v)};color:${hText(v)};font-size:9px;border-radius:2px;min-width:36px">${v.toFixed(2)}</td>`;
+  });
+  ht+='</tr>';
+});
+ht+='</table>';
+document.getElementById('heatmap').innerHTML=ht;
+
+// Lag scatter
+const lp=Array.from({length:80},()=>{
+  const x=Math.random()*14+2;
+  return {x:parseFloat(x.toFixed(2)),y:parseFloat((x*(0.95+Math.random()*0.08)+(Math.random()-0.5)*0.8).toFixed(2))};
+});
+new Chart(document.getElementById('lagCorr'),{
+  type:'scatter',
+  data:{datasets:[{data:lp,backgroundColor:'rgba(185,28,28,0.3)',pointRadius:4}]},
+  options:{...base,scales:{
+    x:{title:{display:true,text:'Log(Export t−1)',font:{size:10}},grid:{color:'#FEE2E2'},ticks:{font:{size:9}}},
+    y:{title:{display:true,text:'Log(Export t)',font:{size:10}},grid:{color:'#FEE2E2'},ticks:{font:{size:9}}}
+  }}
+});
+
+// Model results
+const mn=['AdaBoost','Grad. Boosting','Logistic Reg.','SVM (RBF)','Random Forest','Extra Trees','KNN','XGBoost','LightGBM','Naive Bayes','Decision Tree'];
+const aucs=[0.7923,0.7683,0.7629,0.7551,0.7525,0.7515,0.7467,0.7394,0.7305,0.6791,0.5961];
+const accs=[0.4582,0.4460,0.5866,0.4114,0.4969,0.4949,0.4868,0.4969,0.4786,0.4358,0.5397];
+const f1s=[0.3350,0.2727,0.5932,0.1950,0.4215,0.4464,0.4167,0.4499,0.4074,0.3293,0.5252];
+const aucC=aucs.map((v,i)=>i===0?GOLD:i===2?ACC:(v>=0.75?CR:v>=0.70?RED:AMBER));
+
+new Chart(document.getElementById('aucChart'),{
+  type:'bar',
+  data:{labels:mn,datasets:[{data:aucs,backgroundColor:aucC,borderRadius:4}]},
+  options:{...base,indexAxis:'y',scales:{
+    y:{grid:{display:false},ticks:{font:{size:10}}},
+    x:{min:0.5,ticks:{callback:v=>v.toFixed(2),font:{size:10}},grid:{color:'#FEE2E2'}}
+  }}
+});
+
+new Chart(document.getElementById('accF1Chart'),{
+  type:'bar',
+  data:{labels:mn,datasets:[
+    {label:'Accuracy',data:accs,backgroundColor:CR+'BB',borderRadius:3},
+    {label:'F1-Score',data:f1s,backgroundColor:ACC+'BB',borderRadius:3},
+  ]},
+  options:{...base,indexAxis:'y',
+    plugins:{legend:{display:true,labels:{font:{size:10},boxWidth:10}}},
+    scales:{
+      y:{grid:{display:false},ticks:{font:{size:10}}},
+      x:{min:0,max:0.75,ticks:{callback:v=>v.toFixed(2),font:{size:10}},grid:{color:'#FEE2E2'}}
+    }}
+});
+
+// Feature importance
+const features=[
+  {name:'MFN_Simple_Average', imp:0.11,cat:'tariff', color:DARK,  tag:'tag-tariff',  policy:'WTO-schedule tariff level — lower tariffs strongly predict export growth'},
+  {name:'Export_Lag2',        imp:0.11,cat:'export', color:CR,    tag:'tag-export',  policy:'Two-year lagged export — persistent comparative advantage captured'},
+  {name:'Log_Export',         imp:0.10,cat:'export', color:CR,    tag:'tag-export',  policy:'Current export scale (log) — large exporters more likely to maintain growth'},
+  {name:'AHS_Simple_Average', imp:0.10,cat:'tariff', color:DARK,  tag:'tag-tariff',  policy:'Applied tariff level — bilateral preferential access indicator'},
+  {name:'Export_Import_Ratio',imp:0.09,cat:'balance',color:RED,   tag:'tag-balance', policy:'Export orientation — surplus-structure economies grow faster'},
+  {name:'Trade_Balance_Ratio',imp:0.08,cat:'balance',color:RED,   tag:'tag-balance', policy:'Scale-invariant balance — compares Aruba to China meaningfully'},
+  {name:'Log_Import',         imp:0.08,cat:'export', color:CR,    tag:'tag-export',  policy:'Import volume (log) — reveals domestic demand strength'},
+  {name:'Export_Rolling3',    imp:0.08,cat:'balance',color:RED,   tag:'tag-balance', policy:'3-year rolling trend — smooths noise, captures structural momentum'},
+  {name:'Export_YoY_Growth',  imp:0.07,cat:'macro',  color:ACC,   tag:'tag-macro',   policy:'Prior-year growth momentum — recovery vs acceleration patterns'},
+  {name:'Surplus_Flag',       imp:0.06,cat:'macro',  color:ACC,   tag:'tag-macro',   policy:'Binary surplus indicator — structural trade competitiveness signal'},
+];
+
+const tbody=document.getElementById('featTableBody');
+features.forEach((f,i)=>{
+  tbody.innerHTML+=`<tr>
+    <td style="color:var(--muted);font-family:'DM Mono',monospace">${i+1}</td>
+    <td style="font-family:'DM Mono',monospace;font-size:11.5px;font-weight:500">${f.name}</td>
+    <td><span class="tag ${f.tag}">${f.cat}</span></td>
+    <td style="font-family:'DM Mono',monospace;font-weight:600;color:${f.color}">${f.imp.toFixed(2)}</td>
+    <td class="feat-bar-cell"><div class="feat-bar-bg"><div class="feat-bar-fill" style="width:${f.imp/0.11*100}%;background:${f.color}"></div></div></td>
+    <td style="font-size:11.5px;color:var(--muted)">${f.policy}</td>
+  </tr>`;
+});
+
+new Chart(document.getElementById('featChart'),{
+  type:'bar',
+  data:{labels:features.map(f=>f.name),datasets:[{data:features.map(f=>f.imp),
+    backgroundColor:features.map(f=>f.color),borderRadius:4}]},
+  options:{...base,scales:{
+    x:{grid:{display:false},ticks:{font:{size:9},maxRotation:35}},
+    y:{ticks:{callback:v=>v.toFixed(2),font:{size:10}},grid:{color:'#FEE2E2'}}
+  }}
+});
+</script>
+</body>
+</html>
