@@ -14,7 +14,7 @@
 # 
 
 
-pip install lightgbm
+!pip install lightgbm
 
 # ## 1. Importing Library 
 
